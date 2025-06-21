@@ -1,63 +1,81 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiService, Goal, DashboardSummary } from '../services/api';
 
-interface Goal {
-  id: string;
-  title: string;
-  progress: number;
-  dueDate: string;
-}
-
-interface DashboardProps {
-  userName?: string;
-  goalsCompleted?: number;
-  goalsInProgress?: number;
-  accountabilityStreak?: number;
-  overallProgress?: number;
-  goals?: Goal[];
-}
-
-const Dashboard: React.FC<DashboardProps> = ({
-  userName = 'Evelyn',
-  goalsCompleted = 12,
-  goalsInProgress = 3,
-  accountabilityStreak = 7,
-  overallProgress = 80,
-  goals = [
-    {
-      id: '1',
-      title: 'Run a marathon',
-      progress: 75,
-      dueDate: '2024-12-31'
-    },
-    {
-      id: '2',
-      title: 'Learn Spanish',
-      progress: 50,
-      dueDate: '2024-06-30'
-    },
-    {
-      id: '3',
-      title: 'Read 12 books',
-      progress: 25,
-      dueDate: '2024-12-31'
-    }
-  ]
-}) => {
+const Dashboard: React.FC = () => {
   const router = useRouter();
+  const [summary, setSummary] = useState<DashboardSummary>({
+    goalsCompleted: 0,
+    goalsInProgress: 0,
+    accountabilityStreak: 0,
+    overallProgress: 0,
+    userName: 'User'
+  });
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Fetch both summary and goals in parallel
+        const [summaryData, goalsData] = await Promise.all([
+          apiService.getDashboardSummary(),
+          apiService.getAllGoals()
+        ]);
+        
+        setSummary(summaryData);
+        setGoals(goalsData);
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError('Failed to load dashboard data. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleCreateGoal = () => {
     router.push('/create-goal');
   };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-white text-lg">Loading dashboard...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-red-400 text-lg">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <>
       {/* Welcome Header */}
       <div className="flex flex-wrap justify-between gap-3 p-4">
         <p className="text-white tracking-light text-[32px] font-bold leading-tight min-w-72">
-          Welcome back, {userName}
+          Welcome back, {summary.userName}
         </p>
       </div>
 
@@ -68,7 +86,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             Goals Completed
           </p>
           <p className="text-white tracking-light text-2xl font-bold leading-tight">
-            {goalsCompleted}
+            {summary.goalsCompleted}
           </p>
         </div>
         
@@ -77,7 +95,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             Goals in Progress
           </p>
           <p className="text-white tracking-light text-2xl font-bold leading-tight">
-            {goalsInProgress}
+            {summary.goalsInProgress}
           </p>
         </div>
         
@@ -86,7 +104,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             Accountability Streak
           </p>
           <p className="text-white tracking-light text-2xl font-bold leading-tight">
-            {accountabilityStreak}
+            {summary.accountabilityStreak}
           </p>
         </div>
       </div>
@@ -97,12 +115,12 @@ const Dashboard: React.FC<DashboardProps> = ({
           <p className="text-white text-base font-medium leading-normal">
             Overall Progress
           </p>
-          <p className="text-white text-sm font-normal leading-normal">{overallProgress}%</p>
+          <p className="text-white text-sm font-normal leading-normal">{summary.overallProgress}%</p>
         </div>
         <div className="rounded bg-[#40474f]">
           <div 
             className="h-2 rounded bg-white" 
-            style={{ width: `${overallProgress}%` }}
+            style={{ width: `${summary.overallProgress}%` }}
           ></div>
         </div>
       </div>
@@ -123,48 +141,67 @@ const Dashboard: React.FC<DashboardProps> = ({
       </h2>
       
       <div className="px-4 py-3">
-        <div className="flex overflow-hidden rounded-xl border border-[#40474f] bg-[#121416]">
-          <table className="flex-1">
-            <thead>
-              <tr className="bg-[#1e2124]">
-                <th className="px-4 py-3 text-left text-white w-[400px] text-sm font-medium leading-normal">
-                  Goal
-                </th>
-                <th className="px-4 py-3 text-left text-white w-[400px] text-sm font-medium leading-normal">
-                  Progress
-                </th>
-                <th className="px-4 py-3 text-left text-white w-[400px] text-sm font-medium leading-normal">
-                  Due Date
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {goals.map((goal) => (
-                <tr key={goal.id} className="border-t border-t-[#40474f]">
-                  <td className="h-[72px] px-4 py-2 w-[400px] text-white text-sm font-normal leading-normal">
-                    {goal.title}
-                  </td>
-                  <td className="h-[72px] px-4 py-2 w-[400px] text-sm font-normal leading-normal">
-                    <div className="flex items-center gap-3">
-                      <div className="w-[88px] overflow-hidden rounded-sm bg-[#40474f]">
-                        <div
-                          className="h-1 rounded-full bg-white"
-                          style={{ width: `${goal.progress}%` }}
-                        ></div>
-                      </div>
-                      <p className="text-white text-sm font-medium leading-normal">
-                        {goal.progress}
-                      </p>
-                    </div>
-                  </td>
-                  <td className="h-[72px] px-4 py-2 w-[400px] text-[#a2abb3] text-sm font-normal leading-normal">
-                    {goal.dueDate}
-                  </td>
+        {goals.length === 0 ? (
+          <div className="flex items-center justify-center h-32 bg-[#2c3035] rounded-xl">
+            <p className="text-[#a2abb3] text-base">No goals found. Create your first goal to get started!</p>
+          </div>
+        ) : (
+          <div className="flex overflow-hidden rounded-xl border border-[#40474f] bg-[#121416]">
+            <table className="flex-1">
+              <thead>
+                <tr className="bg-[#1e2124]">
+                  <th className="px-4 py-3 text-left text-white w-[400px] text-sm font-medium leading-normal">
+                    Goal
+                  </th>
+                  <th className="px-4 py-3 text-left text-white w-[400px] text-sm font-medium leading-normal">
+                    Progress
+                  </th>
+                  <th className="px-4 py-3 text-left text-white w-[400px] text-sm font-medium leading-normal">
+                    Due Date
+                  </th>
+                  <th className="px-4 py-3 text-left text-white w-[200px] text-sm font-medium leading-normal">
+                    Status
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {goals.map((goal) => (
+                  <tr key={goal.id} className="border-t border-t-[#40474f]">
+                    <td className="h-[72px] px-4 py-2 w-[400px] text-white text-sm font-normal leading-normal">
+                      {goal.title}
+                    </td>
+                    <td className="h-[72px] px-4 py-2 w-[400px] text-sm font-normal leading-normal">
+                      <div className="flex items-center gap-3">
+                        <div className="w-[88px] overflow-hidden rounded-sm bg-[#40474f]">
+                          <div
+                            className="h-1 rounded-full bg-white"
+                            style={{ width: `${goal.progress}%` }}
+                          ></div>
+                        </div>
+                        <p className="text-white text-sm font-medium leading-normal">
+                          {Math.round(goal.progress)}%
+                        </p>
+                      </div>
+                    </td>
+                    <td className="h-[72px] px-4 py-2 w-[400px] text-[#a2abb3] text-sm font-normal leading-normal">
+                      {formatDate(goal.targetDate)}
+                    </td>
+                    <td className="h-[72px] px-4 py-2 w-[200px] text-sm font-normal leading-normal">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        goal.status === 'Completed' ? 'bg-green-900/20 text-green-400' :
+                        goal.status === 'InProgress' ? 'bg-blue-900/20 text-blue-400' :
+                        goal.status === 'Failed' ? 'bg-red-900/20 text-red-400' :
+                        'bg-gray-900/20 text-gray-400'
+                      }`}>
+                        {goal.status.replace(/([A-Z])/g, ' $1').trim()}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </>
   );

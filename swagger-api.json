@@ -1,0 +1,514 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+      "title": "AryaApp",
+      "version": "1.0"
+    },
+    "paths": {
+      "/api/categories": {
+        "get": {
+          "tags": [
+            "AryaApp"
+          ],
+          "operationId": "GetAllCategories",
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Category"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/goals": {
+        "get": {
+          "tags": [
+            "AryaApp"
+          ],
+          "operationId": "GetAllGoals",
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Int32StringStringStringInt32StringDateTimeGoalStatusDateTimeDateTimeNullableGoalTaskListDoubleInt32Int32<>f__AnonymousType0"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "post": {
+          "tags": [
+            "AryaApp"
+          ],
+          "operationId": "CreateGoal",
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoalCreateRequest"
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "200": {
+              "description": "OK"
+            }
+          }
+        }
+      },
+      "/api/goals/{id}": {
+        "get": {
+          "tags": [
+            "AryaApp"
+          ],
+          "operationId": "GetGoalById",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "style": "simple",
+              "schema": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK"
+            }
+          }
+        },
+        "put": {
+          "tags": [
+            "AryaApp"
+          ],
+          "operationId": "UpdateGoal",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "style": "simple",
+              "schema": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          ],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoalUpdateRequest"
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "200": {
+              "description": "OK"
+            }
+          }
+        },
+        "delete": {
+          "tags": [
+            "AryaApp"
+          ],
+          "operationId": "DeleteGoal",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "style": "simple",
+              "schema": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK"
+            }
+          }
+        }
+      },
+      "/api/goals/{goalId}/tasks": {
+        "post": {
+          "tags": [
+            "AryaApp"
+          ],
+          "operationId": "AddTaskToGoal",
+          "parameters": [
+            {
+              "name": "goalId",
+              "in": "path",
+              "required": true,
+              "style": "simple",
+              "schema": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          ],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskCreateRequest"
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "200": {
+              "description": "OK"
+            }
+          }
+        }
+      },
+      "/api/goals/{goalId}/tasks/{taskId}": {
+        "put": {
+          "tags": [
+            "AryaApp"
+          ],
+          "operationId": "UpdateTask",
+          "parameters": [
+            {
+              "name": "goalId",
+              "in": "path",
+              "required": true,
+              "style": "simple",
+              "schema": {
+                "type": "integer",
+                "format": "int32"
+              }
+            },
+            {
+              "name": "taskId",
+              "in": "path",
+              "required": true,
+              "style": "simple",
+              "schema": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          ],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskUpdateRequest"
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "200": {
+              "description": "OK"
+            }
+          }
+        },
+        "delete": {
+          "tags": [
+            "AryaApp"
+          ],
+          "operationId": "DeleteTask",
+          "parameters": [
+            {
+              "name": "goalId",
+              "in": "path",
+              "required": true,
+              "style": "simple",
+              "schema": {
+                "type": "integer",
+                "format": "int32"
+              }
+            },
+            {
+              "name": "taskId",
+              "in": "path",
+              "required": true,
+              "style": "simple",
+              "schema": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK"
+            }
+          }
+        }
+      },
+      "/api/payment/subscribe": {
+        "post": {
+          "tags": [
+            "AryaApp"
+          ],
+          "operationId": "StripeSubscribe",
+          "responses": {
+            "200": {
+              "description": "OK"
+            }
+          }
+        }
+      },
+      "/api/summary": {
+        "get": {
+          "tags": [
+            "AryaApp"
+          ],
+          "operationId": "GetDashboardSummary",
+          "responses": {
+            "200": {
+              "description": "OK"
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "Category": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "name": {
+              "type": "string",
+              "nullable": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "GoalCreateRequest": {
+          "required": [
+            "categoryId",
+            "targetDate",
+            "title"
+          ],
+          "type": "object",
+          "properties": {
+            "title": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "nullable": true
+            },
+            "plan": {
+              "type": "string",
+              "nullable": true
+            },
+            "categoryId": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "targetDate": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "tasks": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "nullable": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "GoalStatus": {
+          "enum": [
+            "NotStarted",
+            "InProgress",
+            "Completed",
+            "Failed"
+          ],
+          "type": "string"
+        },
+        "GoalTask": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "goalId": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "description": {
+              "type": "string",
+              "nullable": true
+            },
+            "isCompleted": {
+              "type": "boolean"
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time",
+              "nullable": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "GoalUpdateRequest": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "nullable": true
+            },
+            "description": {
+              "type": "string",
+              "nullable": true
+            },
+            "plan": {
+              "type": "string",
+              "nullable": true
+            },
+            "categoryId": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "targetDate": {
+              "type": "string",
+              "format": "date-time",
+              "nullable": true
+            },
+            "status": {
+              "$ref": "#/components/schemas/GoalStatus"
+            }
+          },
+          "additionalProperties": false
+        },
+        "Int32StringStringStringInt32StringDateTimeGoalStatusDateTimeDateTimeNullableGoalTaskListDoubleInt32Int32<>f__AnonymousType0": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "title": {
+              "type": "string",
+              "nullable": true
+            },
+            "description": {
+              "type": "string",
+              "nullable": true
+            },
+            "plan": {
+              "type": "string",
+              "nullable": true
+            },
+            "categoryId": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "category": {
+              "type": "string",
+              "nullable": true
+            },
+            "targetDate": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "status": {
+              "$ref": "#/components/schemas/GoalStatus"
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time",
+              "nullable": true
+            },
+            "tasks": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/GoalTask"
+              },
+              "nullable": true
+            },
+            "progress": {
+              "type": "number",
+              "format": "double"
+            },
+            "totalTasks": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "completedTasks": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "additionalProperties": false
+        },
+        "TaskCreateRequest": {
+          "required": [
+            "description"
+          ],
+          "type": "object",
+          "properties": {
+            "description": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "TaskUpdateRequest": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "nullable": true
+            },
+            "isCompleted": {
+              "type": "boolean",
+              "nullable": true
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
+  }

@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AICoach from "./AICoach";
+import { apiService, Category } from "../services/api";
 
 interface CreateGoalForm {
   title: string;
   description: string;
   plan: string;
   targetDate: string;
-  category: string;
+  categoryId: string;
   tasks: string[];
   newTask: string;
 }
@@ -21,25 +22,38 @@ const CreateGoalPage: React.FC = () => {
     description: "",
     plan: "",
     targetDate: "",
-    category: "",
+    categoryId: "",
     tasks: [],
     newTask: "",
   });
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
-  const categories = [
-    { value: "fitness", label: "Fitness" },
-    { value: "personal-development", label: "Personal Development" },
-    { value: "finance", label: "Finance" },
-    { value: "career", label: "Career" },
-    { value: "health", label: "Health" },
-    { value: "learning", label: "Learning" },
-  ];
+  // Fetch categories on component mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categoriesData = await apiService.getAllCategories();
+        setCategories(categoriesData);
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+        // Categories will fall back to default values in the API service
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleInputChange = (field: keyof CreateGoalForm, value: string) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
+    // Clear error when user starts typing
+    if (error) setError(null);
   };
 
   const handleAddTask = () => {
@@ -63,16 +77,74 @@ const CreateGoalPage: React.FC = () => {
     router.push("/goals");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const validateForm = (): boolean => {
+    if (!formData.title.trim()) {
+      setError("Goal title is required");
+      return false;
+    }
+    if (!formData.categoryId) {
+      setError("Please select a category");
+      return false;
+    }
+    if (!formData.targetDate) {
+      setError("Target date is required");
+      return false;
+    }
+    if (new Date(formData.targetDate) < new Date()) {
+      setError("Target date cannot be in the past");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    // Handle form submission logic here
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setError(null);
+
+      const goalData = {
+        title: formData.title.trim(),
+        description: formData.description.trim() || undefined,
+        plan: formData.plan.trim() || undefined,
+        categoryId: parseInt(formData.categoryId),
+        targetDate: new Date(formData.targetDate).toISOString(),
+        tasks: formData.tasks.length > 0 ? formData.tasks : undefined,
+      };
+
+      await apiService.createGoal(goalData);
+      
+      setSuccess(true);
+      
+      // Redirect to goals page after a short delay
+      setTimeout(() => {
+        router.push("/goals");
+      }, 1500);
+      
+    } catch (err) {
+      console.error('Error creating goal:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create goal. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleAddTask();
+    }
   };
 
   return (
     <>
       {/* Sticky Header */}
-      <div className="sticky top-0 z-10 bg-[#121416]  border-[#2c3035] p-4">
+      <div className="sticky top-0 z-10 bg-[#121416] border-[#2c3035] p-4">
         <div className="flex items-center gap-4 pt-6 px-6">
           <button
             onClick={handleBackToGoals}
@@ -96,10 +168,26 @@ const CreateGoalPage: React.FC = () => {
       <div className="mx-auto max-w-7xl gap-1 px-6 flex flex-1 justify-center py-5">
         {/* Form */}
         <div className="layout-content-container flex flex-col flex-1">
-          <form onSubmit={handleSubmit} className="flex flex-col  px-4">
+          <form onSubmit={handleSubmit} className="flex flex-col px-4">
             <p className="text-white tracking-light text-[32px] font-bold leading-tight min-w-72">
               Set a New Goal
             </p>
+
+            {/* Success Message */}
+            {success && (
+              <div className="mt-4 p-4 bg-green-900/20 border border-green-500/50 rounded-xl">
+                <p className="text-green-400 text-sm font-medium">
+                  Goal created successfully! Redirecting to goals page...
+                </p>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {error && (
+              <div className="mt-4 p-4 bg-red-900/20 border border-red-500/50 rounded-xl">
+                <p className="text-red-400 text-sm font-medium">{error}</p>
+              </div>
+            )}
 
             <div className="flex gap-4 py-3">
               {/* Left Half - All Inputs */}
@@ -107,7 +195,7 @@ const CreateGoalPage: React.FC = () => {
                 {/* Goal Title, Category, and Target Date on same line */}
                 <label className="flex flex-col flex-1">
                   <p className="text-white text-base font-medium leading-normal pb-2">
-                    Goal Title
+                    Goal Title *
                   </p>
                   <input
                     type="text"
@@ -115,32 +203,34 @@ const CreateGoalPage: React.FC = () => {
                     value={formData.title}
                     onChange={(e) => handleInputChange("title", e.target.value)}
                     className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#2c3035] focus:border-none h-14 placeholder:text-[#a2abb3] p-4 text-base font-normal leading-normal"
+                    disabled={submitting}
                   />
                 </label>
 
                 <div className="flex gap-4">
                   <label className="flex flex-col flex-1">
                     <p className="text-white text-base font-medium leading-normal pb-2">
-                      Category
+                      Category *
                     </p>
                     <select
-                      value={formData.category}
+                      value={formData.categoryId}
                       onChange={(e) =>
-                        handleInputChange("category", e.target.value)
+                        handleInputChange("categoryId", e.target.value)
                       }
                       className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#2c3035] focus:border-none h-14 placeholder:text-[#a2abb3] p-4 text-base font-normal leading-normal"
+                      disabled={submitting}
                     >
                       <option value="">Select a category</option>
                       {categories.map((category) => (
-                        <option key={category.value} value={category.value}>
-                          {category.label}
+                        <option key={category.id} value={category.id}>
+                          {category.name}
                         </option>
                       ))}
                     </select>
                   </label>
                   <label className="flex flex-col flex-1">
                     <p className="text-white text-base font-medium leading-normal pb-2">
-                      Target Date
+                      Target Date *
                     </p>
                     <div className="flex w-full flex-1 items-stretch rounded-xl">
                       <input
@@ -151,6 +241,8 @@ const CreateGoalPage: React.FC = () => {
                           handleInputChange("targetDate", e.target.value)
                         }
                         className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#2c3035] focus:border-none h-14 placeholder:text-[#a2abb3] p-4 rounded-r-none border-r-0 pr-2 text-base font-normal leading-normal"
+                        disabled={submitting}
+                        min={new Date().toISOString().split('T')[0]}
                       />
                       <div className="text-[#a2abb3] flex border-none bg-[#2c3035] items-center justify-center pr-4 rounded-r-xl border-l-0">
                         <svg
@@ -179,6 +271,7 @@ const CreateGoalPage: React.FC = () => {
                       handleInputChange("description", e.target.value)
                     }
                     className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#2c3035] focus:border-none min-h-36 placeholder:text-[#a2abb3] p-4 text-base font-normal leading-normal"
+                    disabled={submitting}
                   />
                 </label>
                 {/* Plan - Full Width */}
@@ -191,15 +284,23 @@ const CreateGoalPage: React.FC = () => {
                     value={formData.plan}
                     onChange={(e) => handleInputChange("plan", e.target.value)}
                     className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#2c3035] focus:border-none min-h-36 placeholder:text-[#a2abb3] p-4 text-base font-normal leading-normal"
+                    disabled={submitting}
                   />
                 </label>
                 {/* Submit Button */}
                 <div className="flex pt-3">
                   <button
                     type="submit"
-                    className="flex  cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 flex-1 bg-[#3f7fbf] text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#2d5f8f] transition-colors"
+                    disabled={submitting}
+                    className={`flex cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 flex-1 text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors ${
+                      submitting 
+                        ? 'bg-[#2c3035] cursor-not-allowed' 
+                        : 'bg-[#3f7fbf] hover:bg-[#2d5f8f]'
+                    }`}
                   >
-                    <span className="truncate">Set Goal</span>
+                    <span className="truncate">
+                      {submitting ? 'Creating Goal...' : 'Set Goal'}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -214,19 +315,26 @@ const CreateGoalPage: React.FC = () => {
                 <div className="flex flex-col gap-2">
                   <input
                     type="text"
-                    placeholder="Add a task"
+                    placeholder="Add a task (press Enter to add)"
                     value={formData.newTask}
                     onChange={(e) =>
                       handleInputChange("newTask", e.target.value)
                     }
+                    onKeyPress={handleKeyPress}
                     className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#2c3035] focus:border-none h-14 placeholder:text-[#a2abb3] p-4 text-base font-normal leading-normal"
+                    disabled={submitting}
                   />
 
                   {/* Add Task Button */}
                   <button
                     type="button"
                     onClick={handleAddTask}
-                    className="flex cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#2c3035] text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#40474f] transition-colors"
+                    disabled={submitting || !formData.newTask.trim()}
+                    className={`flex cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors ${
+                      submitting || !formData.newTask.trim()
+                        ? 'bg-[#2c3035] cursor-not-allowed opacity-50'
+                        : 'bg-[#2c3035] hover:bg-[#40474f]'
+                    }`}
                   >
                     <span className="truncate">Add Task</span>
                   </button>
@@ -244,7 +352,8 @@ const CreateGoalPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleRemoveTask(index)}
-                          className="text-[#a2abb3] hover:text-white"
+                          disabled={submitting}
+                          className="text-[#a2abb3] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"

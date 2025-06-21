@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import AICoach from "./AICoach";
 
 interface SidebarProps {
@@ -9,10 +10,13 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ children }) => {
-  const router = useRouter();
+  const pathname = usePathname();
 
-  const handleNavigation = (path: string) => {
-    router.push(path);
+  const isActive = (path: string) => {
+    if (path === "/") {
+      return pathname === "/";
+    }
+    return pathname.startsWith(path);
   };
 
   return (
@@ -26,9 +30,13 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             </h1>
             <div className="flex flex-col gap-2">
               {/* Navigation Items */}
-              <div
-                className="flex items-center gap-3 px-3 py-2 rounded-full bg-[#2c3035] cursor-pointer"
-                onClick={() => handleNavigation("/")}
+              <Link
+                href="/"
+                className={`flex items-center gap-3 px-3 py-2 rounded-full cursor-pointer transition-colors ${
+                  isActive("/")
+                    ? "bg-[#2c3035]"
+                    : "hover:bg-[#2c3035]"
+                }`}
               >
                 <div className="text-white">
                   <svg
@@ -44,11 +52,15 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                 <p className="text-white text-sm font-medium leading-normal">
                   Home
                 </p>
-              </div>
+              </Link>
 
-              <div
-                className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-[#2c3035] rounded-full"
-                onClick={() => handleNavigation("/goals")}
+              <Link
+                href="/goals"
+                className={`flex items-center gap-3 px-3 py-2 rounded-full cursor-pointer transition-colors ${
+                  isActive("/goals")
+                    ? "bg-[#2c3035]"
+                    : "hover:bg-[#2c3035]"
+                }`}
               >
                 <div className="text-white">
                   <svg
@@ -64,26 +76,16 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                 <p className="text-white text-sm font-medium leading-normal">
                   Goals
                 </p>
-              </div>
+              </Link>
 
-              <div className="flex items-center gap-3 px-3 py-2">
-                <div className="text-white">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24px"
-                    height="24px"
-                    fill="currentColor"
-                    viewBox="0 0 256 256"
-                  >
-                    <path d="M232,208a8,8,0,0,1-8,8H32a8,8,0,0,1-8-8V48a8,8,0,0,1,16,0v94.37L90.73,98a8,8,0,0,1,10.07-.38l58.81,44.11L218.73,90a8,8,0,1,1,10.54,12l-64,56a8,8,0,0,1-10.07.38L96.39,114.29,40,163.63V200H224A8,8,0,0,1,232,208Z"></path>
-                  </svg>
-                </div>
-                <p className="text-white text-sm font-medium leading-normal">
-                  Progress
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3 px-3 py-2">
+              <Link 
+                href="/ai-coach"
+                className={`flex items-center gap-3 px-3 py-2 rounded-full cursor-pointer transition-colors ${
+                  isActive("/ai-coach")
+                    ? "bg-[#2c3035]"
+                    : "hover:bg-[#2c3035]"
+                }`}
+              >
                 <div className="text-white">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -167,10 +169,17 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                 <p className="text-white text-sm font-medium leading-normal">
                   AI Coach
                 </p>
-              </div>
+              </Link>
 
               <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-3 px-3 py-2">
+                <Link 
+                  href="/settings"
+                  className={`flex items-center gap-3 px-3 py-2 rounded-full cursor-pointer transition-colors ${
+                    isActive("/settings")
+                      ? "bg-[#2c3035]"
+                      : "hover:bg-[#2c3035]"
+                  }`}
+                >
                   <div className="text-white">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -185,19 +194,19 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                   <p className="text-white text-sm font-medium leading-normal">
                     Settings
                   </p>
-                </div>
+                </Link>
               </div>
             </div>
           </div>
 
           {/* Subscribe Button */}
           <div className="flex flex-col gap-1">
-            <button
-              onClick={() => router.push("/pricing")}
-              className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#3f7fbf] text-white text-sm font-bold leading-normal tracking-[0.015em]"
+            <Link
+              href="/pricing"
+              className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#3f7fbf] text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#2d5f8f] transition-colors"
             >
               <span className="truncate">Upgrade Plan</span>
-            </button>
+            </Link>
             <div className="text-center">
               <p className="text-[#a2abb3] text-xs font-normal leading-normal">
                 Unlock pro features with our premium plan
