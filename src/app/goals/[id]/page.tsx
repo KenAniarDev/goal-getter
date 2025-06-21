@@ -1,17 +1,13 @@
-"use client";
-
-import { useRouter } from 'next/navigation';
 import GoalViewPage from '../../../components/GoalViewPage';
 
 interface GoalPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function GoalPage({ params }: GoalPageProps) {
-  const router = useRouter();
+export default async function GoalPage({ params }: GoalPageProps) {
+  const { id } = await params;
 
-
-  return <GoalViewPage goalId={parseInt(params.id)} />;
+  return <GoalViewPage goalId={parseInt(id)} />;
 } 
