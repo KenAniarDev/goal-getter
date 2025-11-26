@@ -1,4 +1,5 @@
-import PaymentPage from '../../components/PaymentPage';
+"use client";
+import PaymentPage from "../../components/PaymentPage";
 
 export default function Payment() {
   return (
@@ -9,4 +10,4 @@ export default function Payment() {
       </div>
     </div>
   );
-} 
+}

@@ -1,3 +1,4 @@
+"use client";
 import CreateGoalPage from "../../components/CreateGoalPage";
 
 export default function CreateGoal() {

@@ -1,5 +1,6 @@
-import AICoachPage from '../../components/AICoachPage';
+"use client";
+import AICoachPage from "../../components/AICoachPage";
 
 export default function AICoach() {
   return <AICoachPage />;
-} 
+}

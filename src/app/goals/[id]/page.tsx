@@ -1,4 +1,5 @@
-import GoalViewPage from '../../../components/GoalViewPage';
+"use client";
+import GoalViewPage from "../../../components/GoalViewPage";
 
 interface GoalPageProps {
   params: Promise<{
@@ -10,4 +11,4 @@ export default async function GoalPage({ params }: GoalPageProps) {
   const { id } = await params;
 
   return <GoalViewPage goalId={parseInt(id)} />;
-} 
+}
